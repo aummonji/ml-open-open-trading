@@ -1,0 +1,18 @@
+[project]
+name = "ml-open-open-trading"
+version = "0.1.0"
+description = "Leakage-safe ML next-open trading backtester"
+readme = "README.md"
+requires-python = ">=3.13"
+
+
+dependencies = [
+  "numpy>=2.1",          
+  "pandas>=2.2",         
+  "matplotlib>=3.8",     
+  "scikit-learn>=1.4",   
+  "yfinance>=0.2.40",    
+  "xgboost>=2.1"        
+]
+
+[tool.uv]
