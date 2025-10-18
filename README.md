@@ -71,7 +71,7 @@ DONE
 
 ## Example Output
 
-![Equity Curve](scripts\artifacts\equity_SPY.png)
+![Equity Curve](scripts/artifacts/equity_SPY.png)
 
 Performance metrics include:
 - CAGR  
