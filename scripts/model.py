@@ -73,7 +73,7 @@ def walk_forward_probs(
             clf = build_model(params).fit(X_fit, y_fit, sample_weight=w)
             out.iloc[train_at:next_a] = clf.predict_proba(X.iloc[train_at:next_a])[:, 1]
         except Exception as e:
-            # Keep going if an occasional block fails (data oddities, etc.)
+            # Keep going if an occasional block fails 
             print(f"  [warn] skip block {i+1}: {e}")
 
     # Fill any initial NaNs (before first prediction) and sporadic gaps

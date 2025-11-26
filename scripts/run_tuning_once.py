@@ -3,11 +3,10 @@
 """
 One-off hyperparameter tuning for the Gradient Boosting model.
 
-- Uses your existing data/feature pipeline.
 - TimeSeriesSplit CV to avoid shuffling time.
 - Small RandomizedSearchCV around current GBM_PARAMS.
-- Prints a merged dict you *can* paste back into config.GBM_PARAMS
-  IF (and only if) it improves the walk-forward backtest.
+- Prints a merged dict you can paste back into config.GBM_PARAMS
+  IF it improves the walk-forward backtest.
 """
 
 from __future__ import annotations
@@ -47,7 +46,7 @@ def main() -> None:
     print(f"Usable rows after cleaning: {len(X)}")
     print(f"Feature shape: {X.shape[0]} x {X.shape[1]}")
 
-    # 2) Base model using your current GBM_PARAMS
+    # 2) Base model using current GBM_PARAMS
     base_model = GradientBoostingClassifier(**GBM_PARAMS)
 
     # 3) Small search space around current params

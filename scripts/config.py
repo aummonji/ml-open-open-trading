@@ -4,19 +4,13 @@ Contains all hyperparameters, toggles, and constants used throughout the project
 Modify settings here to experiment with different strategy parameters.
 """
 
-# - ML next-open strategy (leakage-safe, costs included)
-# - Compact features (returns/gap, momentum, vol, RSI, SMAs, vol-adjusted momentum)
-# - Rolling walk-forward GBM (retrain every N days on a rolling window)
-# - Long-only baseline exposure + confidence tilts (optionally trend-gated)
-# - Buy & Hold benchmark + side-by-side stats
-
 from pathlib import Path
 
 # ===================== User toggles =====================
 FAST_MODE = True  # quick run on shorter history; flip to False for longer history
 
 # ===================== Config =====================
-TICKER = "NVDA"
+TICKER = "SPY"
 START  = "2018-01-01" if FAST_MODE else "2010-01-01"
 H = 5  # label horizon in trading days: predict whether Open[t+H] > Open[t]
 
