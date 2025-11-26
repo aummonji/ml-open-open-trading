@@ -1,161 +1,262 @@
 # ML Next-Open Trading Strategy
 
-A machine learning based trading strategy that predicts next-open price direction using a Gradient Boosting Classifier and a rolling walk-forward backtest.  
-The project is fully leakage-safe, includes transaction costs, and benchmarks performance against a Buy & Hold strategy.
+A complete machine-learning trading system that predicts **Open[t+H] > Open[t]**,  
+executes trades at the next market open, and evaluates performance through a fully  
+leakage-safe walk-forward backtest with realistic transaction costs.
+
+This repository also includes an optional **live paper-trading module** using Alpaca  
+and a one-off **hyperparameter tuning helper** if you want to override default parameters.
 
 ---
 
-## Overview
+## 📌 Overview
 
-In this project, I applied a supervised machine learning approach to short-term market prediction.  
-The pipeline avoids look-ahead bias, retrains periodically on rolling data, and executes trades at the next open with commissions and slippage applied.
+This project implements a short-horizon supervised machine learning strategy using:
 
----
-
-## Features
-
-- Leakage-safe feature set (no future data leakage)
-- Rolling walk-forward model retraining
-- Fixed-horizon labels (Open[t+H] > Open[t])
-- Compact but expressive features: returns, gaps, momentum, volatility, RSI, SMAs, vol-adjusted momentum
-- Long-only exposure with confidence-based tilts and optional trend gating
-- Trading cost model including commissions and slippage
-- Buy & Hold benchmark comparison
-- Deterministic, reproducible results (fixed random seeds, locked dependencies)
-
----
-
-## Installation
-
-1. Clone the repository  
-   git clone https://github.com/aummonji/ml-open-open-trading.git  
-   cd ml-open-open-trading  
-
-2. Install dependencies using uv (recommended)  
-   pip install uv  
-   uv sync  
-
-3. To add new dependencies later  
-   uv add <package-name>  
-
----
-
-## Running the Strategy
-
-From the project root directory, run:  
-uv run python scripts/ml_trading.py  
-
-The script will:
-1. Download historical data for the configured ticker (default: SPY)
-2. Build leakage-safe features and labels
-3. Train a Gradient Boosting model with rolling walk-forward retraining
-4. Backtest the next-open execution strategy with costs
-5. Save the resulting equity curve plot to the artifacts folder
-
+- A compact and robust feature set  
+- Strict leakage-safe label construction  
+- Rolling walk-forward Gradient Boosting  
+- Confidence-based portfolio exposure  
+- Optional SMA trend gating  
+- A cost-aware next-open backtester  
+- Side-by-side comparison to Buy & Hold  
+- Optional Alpaca paper trading (live_trader.py)
 
 
 ---
 
+## ✨ Features
 
-## What to expect?
+- **Leakage-safe engineered features** 
+- **Rolling walk-forward retraining** (retrain every N days on most recent window)
+- **Fixed-horizon labels** predicting Open[t+H] vs Open[t]
+- **Compact high-value technical features**
+  - log returns  
+  - overnight gaps  
+  - 5-day momentum  
+  - 20-day realised volatility  
+  - RSI-14  
+  - SMA-10 & SMA-50  
+  - VAM-20 (volatility-adjusted momentum)  
+  - 60-day volume percentile rank  
+- **Exposure model**
+  - Long-only baseline (1.0x)
+  - Probability-based tilts  
+  - Trend gating (“loose”: 20/100 SMA or “strict”: 50/200 SMA)
+  - Max gross leverage cap  
+- **Cost model**
+  - 0.5 bps commission  
+  - 0.2 bps slippage  
+- **Deterministic & reproducible** (fixed seeds, consistent data handling)
+- **Outputs saved to `artifacts/` folder**
 
-### Simple ML Next-Open Strategy 
+---
+
+## 📂 Project Structure
+
+```text
+ml-next-open-trading/
+│
+├── scripts/
+│   ├── main.py              # Full backtest pipeline (run this)
+│   ├── live_trader.py       # Optional Alpaca paper trading
+│   ├── run_tuning_once.py   # One-off GBM hyperparameter tuner
+│
+├── data.py                  # Loading & cleaning OHLCV data
+├── features.py              # Full feature engineering pipeline
+├── model.py                 # Walk-forward Gradient Boosting
+├── strategy.py              # Probability → exposure mapping
+├── backtest.py              # Cost-aware next-open backtester
+├── visualization.py         # Equity curve plotting
+├── config.py                # All parameters & settings
+│
+└── artifacts/               # Auto-created output directory
+
+```
+
+---
+
+
+## ⚙️ **Installation**
+
+### 1. Clone the repository
+ ```
+git clone https://github.com/aummonji/ml-open-open-trading.git
+cd ml-open-open-trading
+```
+
+### 2. Create & activate virtual environment (using uv)
+```
+pip install uv
+uv venv
+source .venv/bin/activate     # Windows: .venv\Scripts\activate
+```
+### 3. Install dependencies
+
+```
+uv sync
+```
+### Or add more packages later:
+```
+uv add <package-name>
+```
+
+## ▶️ Running the Backtest
+
+**Run the entire pipeline:**
+```
+uv run python scripts/main.py
+```
+This performs:
+
+Load historical SPY data
+
+Build leakage-safe features + binary target
+
+Train Gradient Boosting model in walk-forward mode
+
+Produce probability-based exposure
+
+Run full next-open backtest with costs
+
+Save equity curve to:
+```
+artifacts/equity_SPY.png
+```
+## 📈 Example Output
+
+Simple ML Next-Open Strategy (leakage-safe, costs included)
 FAST_MODE=True | START=2018-01-01 | H=5 | TREND=loose
 Loaded 1500 rows: 2018-01-02 → 2024-10-15
 Direction accuracy (H=5, 0.5 cut): 0.63
-Saved plot: artifacts/equity_SPY.png
+
+
 DONE
 
+You will also see:
 
----
+- Final equity
+- Total return
+- CAGR
+- Sharpe ratio
+- Annualized volatility
+- Max drawdown
+- Average absolute exposure
 
-## Example Output
+and a saved plot to artifacts/equity_SPY.png, like this: 
 
-![Equity Curve](scripts/artifacts/equity_SPY.png)
+![Equity Curve](artifacts/equity_SPY.png)
 
-Performance metrics include:
-- CAGR  
-- Sharpe Ratio  
-- Annualized Volatility  
-- Max Drawdown  
-- Directional Accuracy  
 
----
 
-## Configuration
+## 🧠 Feature Engineering
+The model uses compact, high-signal technical features:
 
-All configurable parameters are located near the top of scripts/ml_trading.py
+- ret_cc_1: close-to-close log return
+- gap_oc: overnight open/close log gap
+- mom_5: 5-day log momentum
+- vol_20: 20-day realised volatility
+- rsi_14: Welles-Wilder RSI with EMA smoothing
+- sma_10 / sma_50: trend context
+- vam_20: 20-day momentum normalized by volatility
+- vol_pct: 60-day percentile rank of volume (abnormal volume detection)
 
-Parameter | Description | Default  
------------|--------------|----------  
-TICKER | Asset symbol | "SPY"  
-START | Backtest start date | "2018-01-01"  
-H | Prediction horizon (days) | 5  
-FAST_MODE | Shorter backtest for quick runs | True  
-TREND_MODE | "none", "loose", or "strict" trend gating | "loose"  
-FEE_BPS | Commission per trade (bps) | 0.5  
-SLIP_BPS | Slippage cost (bps) | 0.2  
-BASE_EXPOSURE | Base long exposure | 1.0  
-THR_UP / THR_DN | Confidence thresholds for tilts | 0.6 / 0.4  
+All features are strictly shifted to avoid leakage.
 
----
+## 🤖 Model
 
-## Methodology
+- GradientBoostingClassifier (scikit-learn)
+- Default parameters or tuned hyperparameters
+- Retrained every 10 trading days
+- Maximum training window: configurable (e.g., 600–800 rows)
 
-Feature Engineering:
-- Log returns (ret_cc_1), overnight gap (gap_oc), and momentum (mom_5)
-- Realized volatility (vol_20)
-- RSI-14 using Wilder’s EMA
-- Short and medium SMAs (10, 50)
-- Volatility-adjusted momentum (vam_20)
+These settings were empirically stable and outperformed tuned alternatives.
 
-Model:
-- Gradient Boosting Classifier (scikit-learn)
-- 300 estimators, depth 3, learning rate 0.05, subsample 0.9
-- Retrained every 10 trading days using a capped rolling window
-- Recency-weighted sample training for stability
+## 💼 Strategy Logic (Exposure Model)
 
-Execution:
-- Long-only baseline exposure with confidence-based tilts
-- Optional trend gating (SMA-based up/down filter)
-- Trading costs: 0.5 bps commission, 0.2 bps slippage
-- Next-open execution logic with cost accounting
+- Always hold 1.0x baseline long:
+   - If P(up) ≥ 0.60 → add long tilt (up to max_add)
+   - If P(up) ≤ 0.40 → reduce long exposure (down to base − max_sub)
 
----
+- Apply trend gate:
+   - loose = 20/100 SMA filter
+   - strict = 50/200 SMA
 
-## Outputs
+- Enforce max gross leverage
 
-- Equity curve plot: artifacts/equity_SPY.png  
-- Performance metrics printed in console summary  
-- Directional accuracy included for reference  
+This is more stable than going long/flat/short.
 
----
+## 🔄 Hyperparameter Tuning (Optional)
+The project includes a helper you can run:
 
-## Dependencies
+```
+uv run python scripts/run_tuning_once.py
+```
+It:
 
-Managed via uv:
-- numpy  
-- pandas  
-- matplotlib  
-- scikit-learn  
-- yfinance  
+- Uses TimeSeriesSplit
 
-Install or modify dependencies with:  
-uv add <package-name>  
+- Performs a small RandomizedSearchCV
 
----
+- Prints a config block with candidate parameters
+
+Recommendation:
+Do not replace defaults unless your walk-forward backtest improves.
+
+## 📡 Live Paper Trading (Optional)
+Use Alpaca to trade SPY daily based on your model.
+
+### 1. Create Alpaca Paper Account
+https://app.alpaca.markets/
+
+### 2. Generate API Keys
+You will get:
+
+APCA_API_KEY_ID
+
+APCA_API_SECRET_KEY
+
+# 3. Store Keys in Environment Variables
+macOS/Linux:
+```
+export ALPACA_API_KEY_ID="your_key"
+export ALPACA_API_SECRET_KEY="your_secret"
+```
+Windows:
+```
+setx ALPACA_API_KEY_ID "your_key"
+setx ALPACA_API_SECRET_KEY "your_secret"
+```
+# 4. Run the Paper Trader
+```
+uv run python scripts/live_trader.py
+```
+It loads fresh data, computes today's exposure, and syncs it with Alpaca.
+
+## 📦 Dependencies
+Managed with uv:
+
+numpy
+pandas
+matplotlib
+scikit-learn
+yfinance
+
+Add new packages:
+```
+uv add <package-name>
+```
 
 ## Disclaimer
 
 This project is for educational and research purposes only.  
 It is not financial advice or a trading recommendation.  
-Use responsibly.
+Use responsibly. Backtests are not guarantees for future performance.
 
 ---
 ## License
 
-Released under the MIT License.  
-See the LICENSE file for full details.
+MIT License. See the LICENSE file for full details.
 
 ---
 

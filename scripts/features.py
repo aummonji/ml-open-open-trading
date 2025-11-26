@@ -13,37 +13,55 @@ from data import _col
 # ===================== 2) Features + Target =====================
 def _raw_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Build compact, robust features:
-    - ret_cc_1: log return Close[t]/Close[t-1]
-    - gap_oc:   log gap Open[t]/Close[t-1] (overnight info)
-    - mom_5:    log momentum Close[t]/Close[t-5]
-    - vol_20:   realized volatility of daily returns over 20d
-    - rsi_14:   14-day RSI (Wilder's smoothing via EMA)
-    - sma_10/50: simple moving averages for trend context
-    - vam_20:   volatility-adjusted 20-day momentum (Sharpe-like ratio)
+    Compact feature set for short-horizon equity prediction.
+
+    Includes:
+    - log returns, overnight gap
+    - short momentum (5-day)
+    - volatility (20-day)
+    - RSI-14 (overbought/oversold)
+    - trend (SMA-10 / SMA-50)
+    - VAM-20 (vol-adjusted momentum)
+    - macd_hist: MACD histogram (trend-momentum crossover)
+    - vol_rank_60: 60-day volume percentile rank (abnormal liquidity / attention)
     """
     C = _col(df, "Close")
     O = _col(df, "Open")
+    V = _col(df, "Volume") if "Volume" in df.columns else pd.Series(0, index=df.index)
 
     X = pd.DataFrame(index=df.index)
+
+    # --- Price-based primitives ---
     X["ret_cc_1"] = np.log(C / C.shift(1))
     X["gap_oc"]   = np.log(O / C.shift(1))
     X["mom_5"]    = np.log(C / C.shift(5))
-    X["vol_20"]   = C.pct_change().rolling(20, min_periods=2).std()
 
-    # RSI using EMA of up/down moves (avoid division by zero)
+    # 20-day realized volatility of daily returns
+    daily_ret = C.pct_change()
+    X["vol_20"] = daily_ret.rolling(20, min_periods=2).std()
+
+    # --- RSI-14: strength of recent moves ---
     d  = C.diff()
     up = d.clip(lower=0).ewm(alpha=1/14, adjust=False).mean()
     dn = (-d.clip(upper=0)).ewm(alpha=1/14, adjust=False).mean()
-    X["rsi_14"]   = 100 - 100/(1 + up / (dn + 1e-12))
+    X["rsi_14"] = 100 - 100/(1 + up/(dn + 1e-12))
 
-    X["sma_10"]   = C.rolling(10, min_periods=2).mean()
-    X["sma_50"]   = C.rolling(50, min_periods=5).mean()
+    # --- Trend via SMAs ---
+    X["sma_10"] = C.rolling(10, min_periods=2).mean()
+    X["sma_50"] = C.rolling(50, min_periods=5).mean()
 
-    # Volatility-adjusted momentum (akin to a short-horizon Sharpe)
+    # --- VAM-20: momentum normalized by volatility ---
     mom_20 = np.log(C / C.shift(20))
-    vol_20 = X["vol_20"] * np.sqrt(20)   # scale vol to 20-day horizon
-    X["vam_20"] = mom_20 / (vol_20 + 1e-12)
+    vol_20_scaled = X["vol_20"] * np.sqrt(20)
+    X["vam_20"] = mom_20 / (vol_20_scaled + 1e-12)
+
+    # # Compute rolling 60-day percentile rank of today’s volume
+    vol_rank_60 = V.rolling(60, min_periods=20).apply(
+        lambda window: pd.Series(window).rank(pct=True).iloc[-1],
+        raw=False
+    )
+    X["vol_rank_60"] = vol_rank_60.clip(0.0, 1.0)
+
 
     return X
 

@@ -18,7 +18,7 @@ from sklearn.metrics import accuracy_score
 from config import (
     TICKER, START, H, MIN_TRAIN, RETRAIN_EVERY, MAX_TRAIN_WINDOW,
     BASE_EXPOSURE, THR_UP, THR_DN, MAX_ADD, MAX_SUB, MAX_GROSS,
-    TREND_MODE, INITIAL_CAP, FAST_MODE
+    TREND_MODE, INITIAL_CAP, FAST_MODE,
 )
 from data import load_data, _col
 from features import make_features, trend_series
@@ -100,6 +100,7 @@ def main() -> None:
     print("="*60)
     print("DONE")
     print("="*60)
+
 
 if __name__ == "__main__":
     main()

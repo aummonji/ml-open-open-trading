@@ -10,13 +10,13 @@ Modify settings here to experiment with different strategy parameters.
 # - Long-only baseline exposure + confidence tilts (optionally trend-gated)
 # - Buy & Hold benchmark + side-by-side stats
 
-import os
+from pathlib import Path
 
 # ===================== User toggles =====================
 FAST_MODE = True  # quick run on shorter history; flip to False for longer history
 
 # ===================== Config =====================
-TICKER = "SPY"
+TICKER = "NVDA"
 START  = "2018-01-01" if FAST_MODE else "2010-01-01"
 H = 5  # label horizon in trading days: predict whether Open[t+H] > Open[t]
 
@@ -24,19 +24,19 @@ H = 5  # label horizon in trading days: predict whether Open[t+H] > Open[t]
 if FAST_MODE:
     MIN_TRAIN        = 150   # minimum training rows before the first prediction
     RETRAIN_EVERY    = 10    # retrain cadence in trading days
-    MAX_TRAIN_WINDOW = 600   # rolling window size (use the most recent N rows)
+    MAX_TRAIN_WINDOW = 800   # rolling window size (use the most recent N rows)
 else:
     MIN_TRAIN        = 800
     RETRAIN_EVERY    = 10
     MAX_TRAIN_WINDOW = 2500
 
-# Gradient Boosting settings 
+# Gradient Boosting settings
 GBM_PARAMS = dict(
-    n_estimators=300,
-    learning_rate=0.05,
-    max_depth=3,
-    subsample=0.9,
+    n_estimators=600,
+    learning_rate=0.03,
+   subsample=0.7,
     random_state=42,
+    max_depth=2,
 )
 
 # Exposure policy: start from a baseline and tilt up/down with model confidence
@@ -54,6 +54,11 @@ FEE_BPS     = 0.5     # commissions per notional traded (0.5 bp = 0.005%)
 SLIP_BPS    = 0.2     # slippage vs open price (0.2 bp = 0.002%)
 INITIAL_CAP = 100_000.0
 
-# Output folder for saved plots
-ARTIFACTS_DIR = "artifacts"
-os.makedirs(ARTIFACTS_DIR, exist_ok=True)
+# ===================== Paths =====================
+CONFIG_DIR = Path(__file__).resolve().parent
+
+PROJECT_ROOT = CONFIG_DIR.parent
+
+ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
+
+ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)

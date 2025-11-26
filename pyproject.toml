@@ -7,12 +7,13 @@ requires-python = ">=3.13"
 
 
 dependencies = [
-  "numpy>=2.1",          
-  "pandas>=2.2",         
-  "matplotlib>=3.8",     
-  "scikit-learn>=1.4",   
-  "yfinance>=0.2.40",    
-  "xgboost>=2.1"        
+  "numpy>=2.1",
+  "pandas>=2.2",
+  "matplotlib>=3.8",
+  "scikit-learn>=1.4",
+  "yfinance>=0.2.40",
+  "xgboost>=2.1",
+  "alpaca-py>=0.43.2",
 ]
 
 [tool.uv]

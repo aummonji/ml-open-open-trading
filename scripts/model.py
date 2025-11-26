@@ -7,19 +7,21 @@ Trains GradientBoostingClassifier and generates probability predictions.
 from typing import Optional, Dict
 import numpy as np
 import pandas as pd
+from typing import Optional, Dict
 from sklearn.ensemble import GradientBoostingClassifier
-
 from config import GBM_PARAMS
 
-# ===================== 3) Model + Walk-forward =====================
+
 def build_model(params: Optional[Dict] = None) -> GradientBoostingClassifier:
     """
-    Create a GradientBoostingClassifier with sane defaults.
+    Factory for GradientBoostingClassifier.
+    Allows overriding defaults via params.
     """
     cfg = GBM_PARAMS.copy()
     if params:
         cfg.update(params)
     return GradientBoostingClassifier(**cfg)
+
 
 def walk_forward_probs(
     X: pd.DataFrame, y: pd.Series, *,
