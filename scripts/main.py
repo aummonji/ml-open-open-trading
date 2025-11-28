@@ -54,6 +54,12 @@ def main() -> None:
         max_train_window=MAX_TRAIN_WINDOW,
         params=None,
     )
+
+    print("\n=== Probability distribution check ===")
+    print(probs.describe())
+    print(probs.tail(20))
+    
+    print("======================================\n")
     # Ensure a fully populated probability series aligned to X
     if probs.empty:
         probs = pd.Series(0.5, index=X.index, name="p_up")

@@ -175,8 +175,8 @@ These settings were empirically stable and outperformed tuned alternatives.
 ## 💼 Strategy Logic (Exposure Model)
 
 - Always hold 1.0x baseline long:
-   - If P(up) ≥ 0.60 → add long tilt (up to max_add)
-   - If P(up) ≤ 0.40 → reduce long exposure (down to base − max_sub)
+   - If P(up) ≥ 0.55 → add long tilt (up to max_add)
+   - If P(up) ≤ 0.45 → reduce long exposure (down to base − max_sub)
 
 - Apply trend gate:
    - loose = 20/100 SMA filter

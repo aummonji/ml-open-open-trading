@@ -10,7 +10,7 @@ from pathlib import Path
 FAST_MODE = True  # quick run on shorter history; flip to False for longer history
 
 # ===================== Config =====================
-TICKER = "SPY"
+TICKER = "NVDA"
 START  = "2018-01-01" if FAST_MODE else "2010-01-01"
 H = 5  # label horizon in trading days: predict whether Open[t+H] > Open[t]
 
@@ -35,11 +35,11 @@ GBM_PARAMS = dict(
 
 # Exposure policy: start from a baseline and tilt up/down with model confidence
 BASE_EXPOSURE = 1.00  # always hold 1.0x baseline (long-only)
-THR_UP        = 0.60  # if P(up) >= THR_UP, add long exposure
-THR_DN        = 0.40  # if P(up) <= THR_DN, cut exposure
-MAX_ADD       = 0.70  # max additional long exposure above baseline
+THR_UP        = 0.55  # if P(up) >= THR_UP, add long exposure
+THR_DN        = 0.45  # if P(up) <= THR_DN, cut exposure
+MAX_ADD       = 0.8  # max additional long exposure above baseline
 MAX_SUB       = 0.50  # max reduction from baseline
-MAX_GROSS     = 1.70  # cap final exposure for sanity (long-only floor applied later)
+MAX_GROSS     = 1.80  # cap final exposure for sanity (long-only floor applied later)
 
 # Trend gate for tilts: "none", "loose"(20/100 SMA), "strict"(50/200 SMA)
 TREND_MODE    = "loose"
